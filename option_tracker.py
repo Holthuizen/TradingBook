@@ -9,6 +9,7 @@ tab1, tab2, tab3 = st.tabs(["Transaction", "Portfolio", "History"])
 
 import streamlit.components.v1 as components
 
+#renders out the order history and portfolio
 def render_order_card(row):
     return f"""
     <div style="
@@ -24,8 +25,6 @@ def render_order_card(row):
         <p style="font-size: 0.8em; color: #666;">{row[9]}</p>
     </div>
     """
-
-
 
 
 with tab1: 
