@@ -4,7 +4,7 @@ import sqlite3
 
 DATABASE_NAME = "options1.db"
 
-tab1, tab2, tab3 = st.tabs(["Transaction", "Portfolio", "History"])
+tab1, tab2, tab3, tab4 = st.tabs(["Add Option", "Portfolio", "Performance", "Close"])
 
 
 import streamlit.components.v1 as components
@@ -23,10 +23,32 @@ def render_order_card(row):
         <p style="margin:4px 0;"><strong>Strike:</strong> {row[4]} | <strong>Expiry:</strong> {row[5]}</p>
         <p style="margin:4px 0;"><strong>Qty:</strong> {row[6]} | <strong>Price:</strong> ${row[7]} | <strong>Cost:</strong> ${row[8]}</p>
         <p style="font-size: 0.8em; color: #666;">{row[9]}</p>
+        <button>CLOSE POSITION</button>
     </div>
     """
 
 
+con = sqlite3.connect(DATABASE_NAME) 
+cur = con.cursor()
+cur.execute("""
+CREATE TABLE IF NOT EXISTS option_orders (
+    id INTEGER PRIMARY KEY,
+    symbol TEXT NOT NULL,
+    option_type TEXT CHECK(option_type IN ('call', 'put')) NOT NULL,
+    action TEXT CHECK(action IN ('buy', 'sell')) NOT NULL,
+    strike_price REAL NOT NULL,
+    expiry_date TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    price REAL NOT NULL,
+    costs REAL NOT NULL,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+);
+""")
+
+con.commit()
+
+
+#add bought option contract to db
 with tab1: 
     with st.form("option_order_form"):
         symbol = st.text_input("Symbol", value="AMD")
@@ -51,10 +73,12 @@ with tab1:
                 "expiry_date": expiry_date.isoformat(),
                 "quantity": quantity,
                 "price": price,
-                "costs": costs
+                "costs": costs, 
+                "close_prise": 0, #unknown
             }) 
             #update database
-            con = sqlite3.connect(DATABASE_NAME)
+            con = sqlite3.connect(DATABASE_NAME) 
+            cur = con.cursor()
             cur = con.cursor()
             cur.execute(
                 """INSERT INTO option_orders (
@@ -71,6 +95,7 @@ with tab1:
             con.commit()
 
 
+#see all open option contracts in portfolio
 with tab2: 
     con = sqlite3.connect(DATABASE_NAME)
     cur = con.cursor()
@@ -80,6 +105,14 @@ with tab2:
     for row in rows:
         components.html(render_order_card(row), height=200)
 
- 
+
+
+
+
+#compute the buy vs sell price 
 with tab3: 
     pass
+
+
+with tab4: 
+    pass 
